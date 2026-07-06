@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Altmetric Tips & Tricks</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; min-width: 100%; font-family: Arial, sans-serif; background: #f4f4f8; color: #333; margin: 0; padding: 0; box-sizing: border-box; }
+
+  .header { background: #2a265a; padding: 24px 48px; width: 100%; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo { height: 32px; }
+  .header-text h1 { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .header-text p { color: #b0aed4; font-size: 13px; }
+  .submit-link-top { color: #f1850c; font-size: 14px; text-decoration: none; font-weight: 500; white-space: nowrap; }
+  .submit-link-top:hover { text-decoration: underline; }
+
+  .controls { background: #fff; border-bottom: 1px solid #e0dff0; padding: 16px 48px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; width: 100%; }
+  .search-wrap { flex: 2; min-width: 280px; position: relative; }
+  .search-wrap input { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+  .search-wrap input:focus { outline: none; border-color: #f1850c; }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #999; font-size: 15px; }
+  select { padding: 9px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; background: #fff; cursor: pointer; min-width: 180px; }
+  select:focus { outline: none; border-color: #f1850c; }
+  .clear-tag { font-size: 12px; color: #f1850c; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; display: none; }
+  .clear-tag.visible { display: inline; }
+
+  .stats { padding: 10px 48px; font-size: 13px; color: #777; background: #fff; border-bottom: 1px solid #eee; width: 100%; }
+
+  .grid { padding: 24px 48px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; width: 100%; }
+
+  .card { background: #fff; border: 1px solid #e0dff0; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.15s, box-shadow 0.15s; }
+  .card:hover { border-color: #f1850c; box-shadow: 0 2px 8px rgba(241,133,12,0.12); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card-title-wrap { display: flex; align-items: flex-start; gap: 6px; flex: 1; }
+  .featured-dot { width: 8px; height: 8px; border-radius: 50%; background: #f1850c; flex-shrink: 0; margin-top: 5px; }
+  .card-title { font-size: 14px; font-weight: 600; color: #1a1a2e; line-height: 1.4; }
+
+  .skill { font-size: 11px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; font-weight: 500; }
+  .skill-beginner { background: #e8f5e9; color: #2e7d32; }
+  .skill-intermediate { background: #fff3e0; color: #e65100; }
+  .skill-expert { background: #fce4ec; color: #880e4f; }
+
+  .card-desc { font-size: 13px; color: #555; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-desc.expanded { display: block; }
+  .read-more { font-size: 12px; color: #f1850c; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; text-align: left; }
+  .read-more:hover { text-decoration: underline; }
+
+  .card-footer { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .cat-tag { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: #2a265a; color: #d0cef0; font-weight: 500; }
+  .tag-pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #f0f0f8; color: #5a5880; border: 1px solid #d8d6ee; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .tag-pill:hover { background: #f1850c; color: #fff; border-color: #f1850c; }
+  .tag-pill.active { background: #2a265a; color: #fff; border-color: #2a265a; }
+
+  .tip-id { font-size: 11px; color: #bbb; }
+  .visual-link { font-size: 12px; }
+  .visual-link a { color: #f1850c; text-decoration: none; }
+  .visual-link a:hover { text-decoration: underline; }
+
+  .empty { padding: 60px 32px; text-align: center; color: #999; font-size: 15px; }
+
+  .submit-bar { background: #2a265a; padding: 16px 48px; text-align: center; width: 100%; }
+  .submit-bar span { color: #b0aed4; font-size: 14px; margin-right: 8px; }
+  .submit-bar a { color: #f1850c; font-size: 14px; text-decoration: none; font-weight: 500; }
+  .submit-bar a:hover { text-decoration: underline; }
+
+  @media(max-width: 768px) {
+    .controls { padding: 12px 16px; }
+    .grid { padding: 16px; grid-template-columns: 1fr; }
+    .stats { padding: 8px 16px; }
+    .header { padding: 18px 16px; }
+    .submit-bar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div class="header-left">
+      <img src="https://www.altmetric.com/wp-content/themes/morphpress/css/img/altmetric-2024-logo.png" alt="Altmetric" class="header-logo">
+      <div class="header-text">
+        <h1>Tips &amp; Tricks</h1>
+        <p>Expert tips to help you get more from Altmetric — curated by the Learning Team</p>
+      </div>
+    </div>
+    <a href="https://forms.gle/X7SsanWESBVHDNj1A" target="_blank" class="submit-link-top">Submit a tip &rarr;</a>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="search" placeholder="Search tips by keyword..." oninput="render()">
+  </div>
+  <select id="catFilter" onchange="render()">
+    <option value="">All categories</option>
+    <option>🧭 Getting Started &amp; Orientation</option>
+    <option>🎯 Understanding the Altmetric Attention Score</option>
+    <option>🔍 Searching &amp; Filtering the Explorer</option>
+    <option>📊 Reading &amp; Navigating Results</option>
+    <option>💬 Understanding Mentions &amp; Sources</option>
+    <option>📄 Details Pages &amp; Badges</option>
+    <option>📥 Exporting &amp; Reporting</option>
+    <option>🔔 Alerts &amp; Monitoring</option>
+    <option>🤖 AI Features — Attention Digest &amp; Sentiment Analysis</option>
+    <option>🏛️ Institutional Features</option>
+    <option>📚 Altmetric for Books</option>
+    <option>💡 Use Cases</option>
+  </select>
+  <select id="skillFilter" onchange="render()">
+    <option value="">All skill levels</option>
+    <option>Beginner</option>
+    <option>Intermediate</option>
+    <option>Expert</option>
+  </select>
+  <button class="clear-tag" id="clearTag" onclick="clearTag()">&#x2715; Clear tag filter</button>
+</div>
+
+<div class="stats" id="stats">Loading tips...</div>
+<div id="grid" class="grid"><div class="empty">Fetching tips from database...</div></div>
+
+<div class="submit-bar">
+  <span>Have a tip to share?</span>
+  <a href="https://forms.gle/X7SsanWESBVHDNj1A" target="_blank">Submit a tip &rarr;</a>
+</div>
+
+<script>
+const CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR84ukHA-D1guo_DL07iPhazOxZtitNOSAE4931WDThntnBHXGCWVAPg7KDacpJg-pVBKs2UWETYCeU/pub?gid=0&single=true&output=csv";
+let tips = [];
+let activeTag = '';
+
+function clearTag() {
+  activeTag = '';
+  document.getElementById('clearTag').classList.remove('visible');
+  document.querySelectorAll('.tag-pill').forEach(p => p.classList.remove('active'));
+  render();
+}
+
+function filterByTag(tag) {
+  activeTag = activeTag === tag ? '' : tag;
+  document.getElementById('clearTag').classList.toggle('visible', activeTag !== '');
+  render();
+}
+
+function parseCSV(t) {
+  const lines = t.trim().split('\n');
+  const hdrs = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    const cols = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur);
+    const o = {};
+    hdrs.forEach((h, i) => o[h] = (cols[i] || '').replace(/^"|"$/g,'').trim());
+    return o;
+  });
+}
+
+function sc(s) {
+  if (!s) return '';
+  const l = s.toLowerCase();
+  if (l === 'beginner') return 'skill-beginner';
+  if (l === 'intermediate') return 'skill-intermediate';
+  return 'skill-expert';
+}
+
+function renderLinks(text) {
+  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="color:#f1850c;">$1</a>');
+  text = text.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" style="color:#f1850c;">$2</a>');
+  return text;
+}
+
+function getParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name) || '';
+}
+
+function notifyRiseHeight() {
+  const height = document.body.scrollHeight || document.documentElement.scrollHeight;
+  window.parent.postMessage({ id: 'rise', type: 'block-html-height', height: height }, '*');
+}
+
+function tog(i) {
+  const el = document.getElementById('d' + i);
+  const btn = el.nextElementSibling;
+  el.classList.toggle('expanded');
+  btn.textContent = el.classList.contains('expanded') ? 'Show less' : 'Read more';
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const skill = document.getElementById('skillFilter').value;
+
+  let f = tips.filter(t => {
+    if ((t['Status'] || '').toLowerCase() !== 'approved') return false;
+    if (cat && !(t['Category'] || '').toLowerCase().includes(cat.toLowerCase().replace(/&amp;/g,'&'))) return false;
+    if (skill && (t['Skill Level'] || '').toLowerCase() !== skill.toLowerCase()) return false;
+    if (q) {
+      const h = ((t['Title']||'') + (t['Description']||'') + (t['Tags']||'') + (t['Category']||'')).toLowerCase();
+      if (!h.includes(q)) return false;
+    }
+    if (activeTag && !(t['Tags']||'').toLowerCase().split(',').map(x=>x.trim()).includes(activeTag.toLowerCase())) return false;
+    return true;
+  });
+
+  const feat = f.filter(t => (t['Featured?'] || '').toLowerCase() === 'yes');
+  const rest = f.filter(t => (t['Featured?'] || '').toLowerCase() !== 'yes');
+  f = [...feat, ...rest];
+
+  document.getElementById('stats').textContent = f.length + ' tip' + (f.length !== 1 ? 's' : '') + ' found' + (q || cat || skill || activeTag ? ' — filtered' : '');
+
+  if (!f.length) {
+    document.getElementById('grid').innerHTML = '<div class="empty">No tips match your search. Try different keywords or clear your filters.</div>';
+    setTimeout(notifyRiseHeight, 50);
+    return;
+  }
+
+  document.getElementById('grid').innerHTML = f.map((t, i) => {
+    const id = t['Tip ID'] || '';
+    const title = t['Title'] || '';
+    const desc = t['Description'] || '';
+    const cat2 = t['Category'] || '';
+    const skill2 = t['Skill Level'] || '';
+    const visual = t['Visual URL'] || '';
+    const tags = (t['Tags'] || '').split(',').map(x => x.trim()).filter(x => x && !['beginner','intermediate','expert'].includes(x.toLowerCase())).slice(0, 7);
+    const isFeat = (t['Featured?'] || '').toLowerCase() === 'yes';
+
+    return `<div class="card">
+      <div class="card-top">
+        <div class="card-title-wrap">
+          ${isFeat ? '<span class="featured-dot" title="Featured tip"></span>' : ''}
+          <span class="card-title">${title}</span>
+        </div>
+        <span class="skill ${sc(skill2)}">${skill2}</span>
+      </div>
+      <div class="card-desc" id="d${i}">${renderLinks(desc)}</div>
+      <button class="read-more" onclick="tog(${i})">Read more</button>
+      ${visual ? `<div class="visual-link"><a href="${visual}" target="_blank">View screenshot / GIF &rarr;</a></div>` : ''}
+      <div class="card-footer">
+        ${cat2 ? `<span class="cat-tag">${cat2}</span>` : ''}
+        ${tags.map(tg => `<span class="tag-pill${activeTag===tg?' active':''}" onclick="filterByTag('${tg}')">${tg}</span>`).join('')}
+      </div>
+      <span class="tip-id">${id}</span>
+    </div>`;
+  }).join('');
+
+  setTimeout(notifyRiseHeight, 50);
+}
+
+fetch(CSV)
+  .then(r => r.text())
+  .then(t => {
+    tips = parseCSV(t);
+    const preCategory = getParam('category');
+    const preSkill = getParam('skill');
+    const preTag = getParam('tag');
+    const preSearch = getParam('search');
+    if (preCategory) document.getElementById('catFilter').value = preCategory;
+    if (preSkill) document.getElementById('skillFilter').value = preSkill;
+    if (preSearch) document.getElementById('search').value = preSearch;
+    if (preTag) { activeTag = preTag; document.getElementById('clearTag').classList.add('visible'); }
+    render();
+    setTimeout(notifyRiseHeight, 100);
+  })
+  .catch(() => {
+    document.getElementById('grid').innerHTML = '<div class="empty">Unable to load tips. Please try again later.</div>';
+    document.getElementById('stats').textContent = 'Connection error';
+    notifyRiseHeight();
+  });
+
+window.addEventListener('load', notifyRiseHeight);
+</script>
+</body>
+</html>
